@@ -1,0 +1,20 @@
+<!doctype html>
+<head>
+  <title>{% if not title %}Teddy simmer{% else %}{{ title }}{% endif %}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  {% block headcontent %}
+  {% endblock %}
+</head>
+
+<div class="menu">
+  <ul>
+    <li><a href="/">Simulate</a></li>
+    <li><a href="list">List of sims</a></li>
+    <li class = "datetimenow">{{ timenow }}</li>
+  </ul>
+</div>
+
+<div class="content">{% block content %}
+{% endblock %}
+</div>

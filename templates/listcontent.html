@@ -1,0 +1,13 @@
+{% extends "hello.html" %}
+
+{% block content %}
+<b>List:</b>
+<br><br>
+{% if not list %}
+No sims to show :(
+{% else %}
+{% for item in list %}
+<a href="{{ item }}">{{ item }}</a><br><br>
+{% endfor %}
+{% endif %}
+{% endblock %}

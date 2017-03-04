@@ -1,0 +1,70 @@
+{% extends "hello.html" %}
+{% block headcontent %}
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+    <script>
+      $(document).ready(function() {
+        var refresh_id = setInterval(function() {
+            $.get("{{ url_for('queue_status') }}",
+              function(data) {
+                console.log(data);
+                $("#queuecontent").html(data.status)
+              }
+            )
+          }
+          , 3000);
+      });
+    </script>
+{% endblock %}
+{% block content %}
+{% if error %}
+<font color="red">{{ error }}</font> <br><br>
+{%endif %}
+Region:
+<br>
+EU: <input type="radio" name="realmeu" checked>
+<br>
+US: <input type="radio" name="realmus" disabled>
+<br>
+<br>
+<form action="/result" method="POST">
+  Realm:
+  <br>
+  <select name="realm">
+    {% for realm in realms %}<option value="{{ realm }}">{{ realm }}</option>
+    {% endfor %}
+  </select>
+  <br>
+  <br>
+  <p id ="flip" class="flip" onclick="showoptionsfunction()" style="font-size: small">Click to show extra options</p>
+  <div id="optionspanel">
+  <input class="checkbox" type="checkbox" name="scale" value="scale"> Calculate scaling
+  <br>
+  <br>
+  Compare new items with current:
+  <br>
+  <br>
+  <textarea class="compare" name="compare1" rows="1" cols="80" placeholder="trinket1=horn_of_valor,id=133642,bonus_id=1517/1727" maxlength="100"></textarea>
+  <br>
+  <textarea class="compare" name="compare2" rows="1" cols="80" placeholder="trinket2=gift_of_jesus,id=133666,bonus_id=1517/1727" maxlength="100"></textarea>
+</div>
+  <br>
+  Character:
+  <br>
+  <input class="inputtextfield" required type="text" name="charactername" placeholder="Character name" maxlength="12" autofocus pattern="[A-Za-zÆÐƎƏƐƔĲŊŒẞÞǷȜæðǝəɛɣĳŋœĸſßþƿȝĄƁÇĐƊĘĦĮƘŁØƠŞȘŢȚŦŲƯY̨Ƴąɓçđɗęħįƙłøơşșţțŧųưy̨ƴÁÀÂÄǍĂĀÃÅǺĄÆǼǢƁĆĊĈČÇĎḌĐƊÐÉÈĖÊËĚĔĒĘẸƎƏƐĠĜǦĞĢƔáàâäǎăāãåǻąæǽǣɓćċĉčçďḍđɗðéèėêëěĕēęẹǝəɛġĝǧğģɣĤḤĦIÍÌİÎÏǏĬĪĨĮỊĲĴĶƘĹĻŁĽĿʼNŃN̈ŇÑŅŊÓÒÔÖǑŎŌÕŐỌØǾƠŒĥḥħıíìiîïǐĭīĩįịĳĵķƙĸĺļłľŀŉńn̈ňñņŋóòôöǒŏōõőọøǿơœŔŘŖŚŜŠŞȘṢẞŤŢṬŦÞÚÙÛÜǓŬŪŨŰŮŲỤƯẂẀŴẄǷÝỲŶŸȲỸƳŹŻŽẒŕřŗſśŝšşșṣßťţṭŧþúùûüǔŭūũűůųụưẃẁŵẅƿýỳŷÿȳỹƴźżžẓ]{1,}">
+<!-- Hieno patterni hermanni :~~~~D -->
+<br>
+<br>
+<br>
+  <input type="submit" class="button" value="Simulate">
+  <br>
+  <br><script>
+function showoptionsfunction() {
+    document.getElementById("optionspanel").style.display = "block";
+    document.getElementById("flip").style.display = "none";
+}
+</script>
+</form>
+  <br>
+Queue: <span id="queuecontent">..</span>
+
+  {% endblock %}

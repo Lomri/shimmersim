@@ -1,0 +1,61 @@
+{% extends "hello.html" %}
+{% block headcontent %}
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+    <script>
+      $(document).ready(function() {
+        $.get(
+          "{{ url_for('queue_status') }}",
+          function(data) {
+            window.firstdata = parseInt(data.status)
+            window.ownspot = window.firstdata
+          }
+        )
+        var refresh_id = setInterval(function() {
+            $.get(
+              "{{ url_for('thread_status') }}",
+              function(data) {
+                console.log(data);
+                if (data.status == '{{ randomlause }}') {
+                  console.log("Our simulation is ready.")
+                  window.location.replace("/{{ name }}-{{ randomlause }}.html");
+                }
+              }
+            )
+            $.get(
+              "{{ url_for('queue_status') }}",
+              function(data) {
+                console.log(data);
+                if (data.status == '1') {
+                  $("#numberchange").html('Calculating your simulation')
+                  $("#queuetotalinfo").html('');
+                }
+                else {
+                  if (parseInt(data.status) < window.lastdata) {
+                    window.ownspot--
+                  }
+                  $("#numberchange").html("Waiting for spot.")
+                  $("#queuetotalinfo").html("Your place in queue: "+window.ownspot+" of "+data.status);
+                  window.lastdata = data.status;
+                  }
+                }
+              )
+              }
+
+          , 1000);
+      });
+    </script>
+{% endblock %}
+
+{% block content %}
+Simulating {{ name }} ...
+<br>
+<br>
+<br>
+{% if amount_in_queue and amount_in_queue > 0 %}
+<span id="numberchange">...</span><br>
+<span id="queuetotalinfo"></span><br>
+{% else %}
+Data error
+{% endif %}
+{% endblock %}
