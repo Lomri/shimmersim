@@ -32,7 +32,7 @@ lock = Lock()
 
 local = True
 
-# Add secret key here:
+# This app doesn't need a secret key right now, but it can be added here in the future:
 app.secret_key = ""
 
 
@@ -89,17 +89,22 @@ def simulate(randomlause, name, realm, scaling, name_compared, itemcompare1, ite
         try:
             lock.acquire()
             if scaling:
-                call("cmd /C %s hosted_html=1 iterations=%s target_error=%s threads=%s calculate_scale_factors=1 copy=%s %s %s" %
-                (complete, iterations, target_error, threads, name_compared, itemcompare1,
+                call("cmd /C %s hosted_html=1 iterations=%s target_error=%s "
+                     "threads=%s calculate_scale_factors=1 copy=%s %s %s" %
+                (complete, iterations, target_error,
+                 threads, name_compared, itemcompare1,
                 itemcompare2))
 
             else:
-                call("cmd /C %s hosted_html=1 iterations=%s target_error=%s threads=%s calculate_scale_factors=%s copy=%s %s %s" %
-                 (complete, iterations, target_error, threads, calculate_scale_factors, name_compared, itemcompare1,
+                call("cmd /C %s hosted_html=1 iterations=%s target_error=%s "
+                     "threads=%s calculate_scale_factors=%s copy=%s %s %s" %
+                 (complete, iterations, target_error,
+                  threads, calculate_scale_factors, name_compared, itemcompare1,
                  itemcompare2))
 
         except Exception as e:
-            return render_template('frontcontent.html', error=e, realms=realms)
+            return render_template('frontcontent.html',
+                                   error=e, realms=realms)
 
         finally:
             lock.release()
@@ -109,7 +114,8 @@ def simulate(randomlause, name, realm, scaling, name_compared, itemcompare1, ite
         try:
             lock.acquire()
             if scaling:
-                call("cmd /C %s hosted_html=1 iterations=10000 target_error=0.050 threads=4 calculate_scale_factors=1" % complete)
+                call("cmd /C %s hosted_html=1 iterations=10000 "
+                     "target_error=0.050 threads=4 calculate_scale_factors=1" % complete)
 
 
             else:
@@ -117,7 +123,8 @@ def simulate(randomlause, name, realm, scaling, name_compared, itemcompare1, ite
                     (complete, iterations, target_error, threads))
 
         except Exception as e:
-            return render_template('frontcontent.html', error=e, realms=realms)
+            return render_template('frontcontent.html',
+                                   error=e, realms=realms)
 
         finally:
             lock.release()
@@ -131,14 +138,16 @@ def simulate(randomlause, name, realm, scaling, name_compared, itemcompare1, ite
 @app.route("/", methods=['GET', 'POST'])
 def form():
     timenow = datetime.now().strftime('%d.%m.%Y - %H:%M')
-    return render_template('frontcontent.html', timenow=timenow, realms=realms)
+    return render_template('frontcontent.html',
+                           timenow=timenow, realms=realms)
 
 
 @app.route("/list")
 def lista():
     timenow = datetime.now().strftime('%d.%m.%Y - %H:%M    ')
     list_of_html = [s for s in listdir() if s.endswith('.html')]
-    return render_template('listcontent.html', list=list_of_html, timenow=timenow)
+    return render_template('listcontent.html',
+                           list=list_of_html, timenow=timenow)
 
 
 @app.route("/result", methods=['GET', 'POST'])
@@ -163,22 +172,35 @@ def handle():
             itemcompare2 = request.form['compare2']
         if request.form['compare1'] or request.form['compare2']:
             name_compared = name + "_COMPARED"
-        if itemcompare1 and not process_input_of_comparison(itemcompare1) or itemcompare2 and not process_input_of_comparison(itemcompare2):
-            return render_template('frontcontent.html', error="Item compare error.", realms=realms)
+        if itemcompare1 and not \
+                process_input_of_comparison(itemcompare1) or \
+                        itemcompare2 and not \
+                        process_input_of_comparison(itemcompare2):
+            return render_template('frontcontent.html',
+                                   error="Item compare error.",
+                                   realms=realms)
         if not process_input(name, realm):
-            return render_template('frontcontent.html', error="Error with input.", realms=realms)
+            return render_template('frontcontent.html',
+                                   error="Error with input.",
+                                   realms=realms)
         else:
             randomlause = randomword(15)
-            th = Thread(target=simulate, args=(randomlause, name, realm, scaling, name_compared, itemcompare1, itemcompare2))
+            th = Thread(target=simulate, args=(randomlause, name,
+                                               realm, scaling,
+                                               name_compared,
+                                               itemcompare1, itemcompare2))
             th.name = randomlause
-            logger.info("%s - - New thread starting for %s, name: %s " % (request.remote_addr, name, th.name))
+            logger.info("%s - - New thread starting for %s, name: %s "
+                        % (request.remote_addr, name, th.name))
             th.start()
             amount_in_queue += 1
-            # return send_from_directory('', '%s-%s.html' % (name, randomlause))
-            return render_template('form_action.html', name=name, randomlause=randomlause, amount_in_queue=amount_in_queue)
+            return render_template('form_action.html', name=name, randomlause=randomlause,
+                                   amount_in_queue=amount_in_queue)
 
     else:
-        return render_template('frontcontent.html', error="No results (yet)!", realms=realms)
+        return render_template('frontcontent.html',
+                               error="No results (yet)!",
+                               realms=realms)
 
 
 @app.route("/<htmldoc>.html")
@@ -207,12 +229,18 @@ def queue_status():
 
 @app.errorhandler(404)
 def page_not_found(e):
-    return render_template('frontcontent.html', title="Teddy simmer - 404 Error", error="Error happened! (404 not found)", realms=realms), 404
+    return render_template('frontcontent.html',
+                           title="Teddy simmer - 404 Error",
+                           error="Error happened! (404 not found)",
+                           realms=realms), 404
 
 
 @app.errorhandler(500)
 def internal_server_error(e):
-    return render_template('frontcontent.html', title="Teddy simmer - 500 Error", error="Error happened! (500 internal error)", realms=realms), 500
+    return render_template('frontcontent.html',
+                           title="Teddy simmer - 500 Error",
+                           error="Error happened! (500 internal error)",
+                           realms=realms), 500
 
 if __name__ == "__main__":
     if local:
