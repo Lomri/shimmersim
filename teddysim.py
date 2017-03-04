@@ -13,7 +13,6 @@ from threading import Thread, Lock
 import logging
 
 
-
 app = Flask(__name__)
 
 # Logger setup:
@@ -35,8 +34,8 @@ local = True
 # This app doesn't need a secret key right now, but it can be added here in the future:
 app.secret_key = ""
 
-
-home = expanduser("~")  # this should work cross-platform for the home or user folder
+# this should work cross-platform for the home folder (Windows user folder):
+home = expanduser("~")
 path = "\"\"%s\\Desktop\\simc\\simc.exe\"" % home
 # path example: "\"\"C:\\simc\\simc.exe\""
 
@@ -55,6 +54,7 @@ def randomword(length):
     return ''.join(random.choice(string.ascii_lowercase) for i in range(length))
 
 
+# Processes input of "name"
 def process_input(input1, input2):
     if not match(regex_match, input1) and not match(regex_match, input2):
         return False
@@ -62,15 +62,12 @@ def process_input(input1, input2):
         return True
 
 
+# Processes input of "trinkets"
 def process_input_of_comparison(item):
     if not match(regex_comparison_match, item):
         return False
     else:
         return True
-
-
-def waitscreen(randomlause, name):
-    return render_template('form_action.html', name=name, randomlause=randomlause)
 
 
 # Simulation function:
@@ -86,9 +83,11 @@ def simulate(randomlause, name, realm, scaling, name_compared, itemcompare1, ite
     global amount_in_queue
 
     if itemcompare1 or itemcompare2:
+        # User wants to compare items
         try:
-            lock.acquire()
+            lock.acquire()  # Thread starts waiting for its turn
             if scaling:
+                # User wants to compare items AND get stat scaling
                 call("cmd /C %s hosted_html=1 iterations=%s target_error=%s "
                      "threads=%s calculate_scale_factors=1 copy=%s %s %s" %
                 (complete, iterations, target_error,
@@ -96,6 +95,7 @@ def simulate(randomlause, name, realm, scaling, name_compared, itemcompare1, ite
                 itemcompare2))
 
             else:
+                # User wants to compare and NOT get scaling
                 call("cmd /C %s hosted_html=1 iterations=%s target_error=%s "
                      "threads=%s calculate_scale_factors=%s copy=%s %s %s" %
                  (complete, iterations, target_error,
@@ -110,15 +110,17 @@ def simulate(randomlause, name, realm, scaling, name_compared, itemcompare1, ite
             lock.release()
 
     if not (itemcompare1 or itemcompare2):
-        # Default calculations with default settings
+        # User does NOT want to compare with items
         try:
             lock.acquire()
             if scaling:
+                # User wants to get stats scaling
                 call("cmd /C %s hosted_html=1 iterations=10000 "
                      "target_error=0.050 threads=4 calculate_scale_factors=1" % complete)
 
 
             else:
+                # User only wants to run a simple sim with default settings
                 call("cmd /C %s hosted_html=1 iterations=%s target_error=%s threads=%s" %
                     (complete, iterations, target_error, threads))
 
@@ -127,12 +129,11 @@ def simulate(randomlause, name, realm, scaling, name_compared, itemcompare1, ite
                                    error=e, realms=realms)
 
         finally:
-            lock.release()
+            lock.release()  # Always release thread lock no matter what happens
 
     finished_thread_name = randomlause
     finished = True
     amount_in_queue -= 1
-
 
 
 @app.route("/", methods=['GET', 'POST'])
@@ -166,12 +167,17 @@ def handle():
         global amount_in_queue
         finished = False
 
+        # Get user inputs:
+
         if request.form['compare1']:
             itemcompare1 = request.form['compare1']
         if request.form['compare2']:
             itemcompare2 = request.form['compare2']
         if request.form['compare1'] or request.form['compare2']:
             name_compared = name + "_COMPARED"
+
+        # Check user input against regex server side
+
         if itemcompare1 and not \
                 process_input_of_comparison(itemcompare1) or \
                         itemcompare2 and not \
@@ -184,6 +190,7 @@ def handle():
                                    error="Error with input.",
                                    realms=realms)
         else:
+            # Everything went OK and we let the user to create a thread for simming
             randomlause = randomword(15)
             th = Thread(target=simulate, args=(randomlause, name,
                                                realm, scaling,
@@ -198,6 +205,7 @@ def handle():
                                    amount_in_queue=amount_in_queue)
 
     else:
+        # Returning this usually means user tried to access /result directly
         return render_template('frontcontent.html',
                                error="No results (yet)!",
                                realms=realms)
@@ -205,6 +213,7 @@ def handle():
 
 @app.route("/<htmldoc>.html")
 def documents(htmldoc):
+    # Allows access to any static html file on server, if they exist
     try:
         return send_from_directory('', "%s.html" % htmldoc)
     except Exception:
@@ -216,6 +225,7 @@ def robots():
     return send_from_directory('', "robots.txt")
 
 
+# API's for last finished thread statuses and queue status:
 @app.route('/status')
 def thread_status():
     return jsonify(dict(status=(finished_thread_name if finished else 'running')))
@@ -227,6 +237,7 @@ def queue_status():
     return jsonify(dict(status=amount_in_queue))
 
 
+# Basic error handlers:
 @app.errorhandler(404)
 def page_not_found(e):
     return render_template('frontcontent.html',
@@ -244,8 +255,8 @@ def internal_server_error(e):
 
 if __name__ == "__main__":
     if local:
-        app.run(threaded=True)
         logger.info("Starting the app locally")
+        app.run(threaded=True)
     else:
-        app.run(host='0.0.0.0', port=2302)
         logger.info("Starting the app publicly")
+        app.run(host='0.0.0.0', port=2302)
