@@ -157,13 +157,21 @@ def handle():
 
         # Check user input against regex server side
         if itemcompare1 and not \
-                process_input_of_comparison(itemcompare1) or \
-                        itemcompare2 and not \
-                        process_input_of_comparison(itemcompare2):
+            process_input_of_comparison(itemcompare1) or \
+            itemcompare2 and not \
+            process_input_of_comparison(itemcompare2):
+
+            logger.warning("%s had error with item compare regex: %s %s" %
+                           (request.remote_addr, itemcompare1, itemcompare2))
+
             return render_template('frontcontent.html',
                                    error="Item compare error.",
                                    realms=realms)
+
         if not process_input(name, realm):
+            logger.warning("%s had error with name input regex: %s" %
+                           (request.remote_addr, name))
+
             return render_template('frontcontent.html',
                                    error="Error with input.",
                                    realms=realms)
