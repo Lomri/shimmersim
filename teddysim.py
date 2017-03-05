@@ -14,6 +14,7 @@ import logging
 
 
 app = Flask(__name__)
+local = True
 
 # Logger setup:
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s %(message)s',
@@ -21,15 +22,12 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s %(mess
 logger = logging.getLogger(__name__)
 logging.getLogger('requests').setLevel(logging.CRITICAL)
 
-
 # Threading:
 th = Thread()
 finished = False
 finished_thread_name = None
 amount_in_queue = 0
 lock = Lock()
-
-local = True
 
 # This app doesn't need a secret key right now, but it can be added here in the future:
 app.secret_key = ""
@@ -44,10 +42,10 @@ regex_match = "[A-Za-zÆÐƎƏƐƔĲŊŒẞÞǷȜæðǝəɛɣĳŋœĸſßþƿȝ�
 regex_comparison_match = "[A-Za-z0-9/_=,']"
 
 # DEFAULT SETTINGS FOR SIM
-iterations = 10000
-target_error = 0.100
-threads = 2
-calculate_scale_factors = 0
+# iterations = 10000
+# target_error = 0.100
+# threads = 2
+# calculate_scale_factors = 0
 
 
 def randomword(length):
@@ -82,55 +80,37 @@ def simulate(randomlause, name, realm, scaling, name_compared, itemcompare1, ite
     global finished_thread_name
     global amount_in_queue
 
-    if itemcompare1 or itemcompare2:
-        # User wants to compare items
-        try:
-            lock.acquire()  # Thread starts waiting for its turn
-            if scaling:
-                # User wants to compare items AND get stat scaling
-                call("cmd /C %s hosted_html=1 iterations=%s target_error=%s "
-                     "threads=%s calculate_scale_factors=1 copy=%s %s %s" %
-                (complete, iterations, target_error,
-                 threads, name_compared, itemcompare1,
-                itemcompare2))
+    try:
+        lock.acquire()  # Get lock or wait for lock
+        logger.info("New simulation starting for %s, name: %s "
+                    % (name, randomlause))
+        calculate_scale_factors = 0
+        target_error = 0.1
+        iterations = 10000
+        threads = 2
+        complete_compare_string = ''
 
-            else:
-                # User wants to compare and NOT get scaling
-                call("cmd /C %s hosted_html=1 iterations=%s target_error=%s "
-                     "threads=%s calculate_scale_factors=%s copy=%s %s %s" %
-                 (complete, iterations, target_error,
-                  threads, calculate_scale_factors, name_compared, itemcompare1,
-                 itemcompare2))
+        if scaling:
+            calculate_scale_factors = 1
+            target_error = 0.050
+            iterations = 10000
+            threads = 4
 
-        except Exception as e:
-            return render_template('frontcontent.html',
-                                   error=e, realms=realms)
+        if itemcompare1 or itemcompare2:
+            complete_compare_string = "copy=%s %s %s" % (name_compared, itemcompare1, itemcompare2)
 
-        finally:
-            lock.release()
+        # This call method runs only on Windows
+        call("cmd /C %s hosted_html=1 iterations=%s target_error=%s threads=%s calculate_scale_factors=%s %s" %
+             (complete, iterations, target_error, threads, calculate_scale_factors, complete_compare_string))
 
-    if not (itemcompare1 or itemcompare2):
-        # User does NOT want to compare with items
-        try:
-            lock.acquire()
-            if scaling:
-                # User wants to get stats scaling
-                call("cmd /C %s hosted_html=1 iterations=10000 "
-                     "target_error=0.050 threads=4 calculate_scale_factors=1" % complete)
+    except Exception:
+        return render_template('frontcontent.html',
+                               error="Error with simulation", realms=realms)
 
+    finally:
+        lock.release()  # Always release the lock no matter what
 
-            else:
-                # User only wants to run a simple sim with default settings
-                call("cmd /C %s hosted_html=1 iterations=%s target_error=%s threads=%s" %
-                    (complete, iterations, target_error, threads))
-
-        except Exception as e:
-            return render_template('frontcontent.html',
-                                   error=e, realms=realms)
-
-        finally:
-            lock.release()  # Always release thread lock no matter what happens
-
+    # API's use these variables:
     finished_thread_name = randomlause
     finished = True
     amount_in_queue -= 1
@@ -168,7 +148,6 @@ def handle():
         finished = False
 
         # Get user inputs:
-
         if request.form['compare1']:
             itemcompare1 = request.form['compare1']
         if request.form['compare2']:
@@ -177,7 +156,6 @@ def handle():
             name_compared = name + "_COMPARED"
 
         # Check user input against regex server side
-
         if itemcompare1 and not \
                 process_input_of_comparison(itemcompare1) or \
                         itemcompare2 and not \
@@ -197,8 +175,7 @@ def handle():
                                                name_compared,
                                                itemcompare1, itemcompare2))
             th.name = randomlause
-            logger.info("%s - - New thread starting for %s, name: %s "
-                        % (request.remote_addr, name, th.name))
+            logger.info("%s - - %s" % (request.remote_addr, name))
             th.start()
             amount_in_queue += 1
             return render_template('form_action.html', name=name, randomlause=randomlause,
@@ -225,12 +202,13 @@ def robots():
     return send_from_directory('', "robots.txt")
 
 
-# API's for last finished thread statuses and queue status:
+# API for last finished thread status:
 @app.route('/status')
 def thread_status():
     return jsonify(dict(status=(finished_thread_name if finished else 'running')))
 
 
+# API for queue total status:
 @app.route('/queue_status')
 def queue_status():
     global amount_in_queue
