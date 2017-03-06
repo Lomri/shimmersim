@@ -104,7 +104,11 @@ def simulate(randomlause, name, realm, scaling, name_compared, itemcompare1, ite
             complete_compare_string = "copy=%s %s %s" % (name_compared, itemcompare1, itemcompare2)
 
         # This call method runs only on Windows
-        call("cmd /C %s hosted_html=1 iterations=%s target_error=%s threads=%s calculate_scale_factors=%s %s" %
+        # call("cmd /C %s hosted_html=1 iterations=%s target_error=%s threads=%s calculate_scale_factors=%s %s" %
+             #(complete, iterations, target_error, threads, calculate_scale_factors, complete_compare_string))
+
+        # test if this runs on linux:
+            call("%s hosted_html=1 iterations=%s target_error=%s threads=%s calculate_scale_factors=%s %s" %
              (complete, iterations, target_error, threads, calculate_scale_factors, complete_compare_string))
 
     except Exception:
