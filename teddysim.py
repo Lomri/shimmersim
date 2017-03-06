@@ -77,8 +77,12 @@ def process_input_of_comparison(item):
 
 # Simulation function:
 def simulate(randomlause, name, realm, scaling, name_compared, itemcompare1, itemcompare2):
+    # works on linux:
     randomi = " html=" + name + "-" + randomlause + ".html"
     execution = ' armory=eu,%s,%s' % (realm, name)
+    # windows maybe has to use something like:
+    # randomi = " \"html=" + name + "-" + randomlause + ".html\"\""
+    # execution = ' \"armory=eu,%s,%s\"' % (realm, name)
     complete = path + execution + randomi
     name_compared = name_compared
 
@@ -101,13 +105,7 @@ def simulate(randomlause, name, realm, scaling, name_compared, itemcompare1, ite
             calculate_scale_factors = 1
             target_error = 0.050
             iterations = 10000
-            if amount_in_queue == 0 or amount_in_queue == 1:
-                threads = 4
-            else:
-                if amount_in_queue == 2:
-                    threads = 3
-                else:
-                    threads = 2
+            threads = 4
 
         if itemcompare1 or itemcompare2:
             complete_compare_string = "copy=%s %s %s" % (name_compared, itemcompare1, itemcompare2)
@@ -263,4 +261,4 @@ if __name__ == "__main__":
         app.run(threaded=True)
     else:
         logger.info("Starting the app publicly")
-        app.run(host='0.0.0.0', port=2302)
+        app.run(host='0.0.0.0', port=80)
