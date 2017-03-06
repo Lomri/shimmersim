@@ -14,7 +14,7 @@ import logging
 
 
 app = Flask(__name__)
-local = True
+local = False
 
 # Logger setup:
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s %(message)s',
@@ -34,8 +34,12 @@ app.secret_key = ""
 
 # this should work cross-platform for the home folder (Windows user folder):
 home = expanduser("~")
-path = "\"\"%s\\Desktop\\simc\\simc.exe\"" % home
+# windows:
+# path = "\"\"%s\\simc\\engine\\simc.exe\"" % home
+# linux:
+path = "\"\"%s\\simc\\engine\\./simc\"" % home
 # path example: "\"\"C:\\simc\\simc.exe\""
+
 
 realms = ["Darksorrow", "Genjuros", "Neptulon"]
 regex_match = "[A-Za-zÆÐƎƏƐƔĲŊŒẞÞǷȜæðǝəɛɣĳŋœĸſßþƿȝĄƁÇĐƊĘĦĮƘŁØƠŞȘŢȚŦŲƯY̨Ƴąɓçđɗęħįƙłøơşșţțŧųưy̨ƴÁÀÂÄǍĂĀÃÅǺĄÆǼǢƁĆĊĈČÇĎḌĐƊÐÉÈĖÊËĚĔĒĘẸƎƏƐĠĜǦĞĢƔáàâäǎăāãåǻąæǽǣɓćċĉčçďḍđɗðéèėêëěĕēęẹǝəɛġĝǧğģɣĤḤĦIÍÌİÎÏǏĬĪĨĮỊĲĴĶƘĹĻŁĽĿʼNŃN̈ŇÑŅŊÓÒÔÖǑŎŌÕŐỌØǾƠŒĥḥħıíìiîïǐĭīĩįịĳĵķƙĸĺļłľŀŉńn̈ňñņŋóòôöǒŏōõőọøǿơœŔŘŖŚŜŠŞȘṢẞŤŢṬŦÞÚÙÛÜǓŬŪŨŰŮŲỤƯẂẀŴẄǷÝỲŶŸȲỸƳŹŻŽẒŕřŗſśŝšşșṣßťţṭŧþúùûüǔŭūũűůųụưẃẁŵẅƿýỳŷÿȳỹƴźżžẓ]{1,12}"
