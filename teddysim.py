@@ -21,6 +21,9 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s %(mess
                     datefmt="%d.%m.%Y %H:%M:%S")
 logger = logging.getLogger(__name__)
 logging.getLogger('requests').setLevel(logging.CRITICAL)
+handler = logging.FileHandler('simlog.log')
+handler.setLevel(logging.INFO)
+logger.addHandler(handler)
 
 # Threading:
 th = Thread()
@@ -98,7 +101,13 @@ def simulate(randomlause, name, realm, scaling, name_compared, itemcompare1, ite
             calculate_scale_factors = 1
             target_error = 0.050
             iterations = 10000
-            threads = 4
+            if amount_in_queue == 0 or amount_in_queue == 1:
+                threads = 4
+            else:
+                if amount_in_queue == 2:
+                    threads = 3
+                else:
+                    threads = 2
 
         if itemcompare1 or itemcompare2:
             complete_compare_string = "copy=%s %s %s" % (name_compared, itemcompare1, itemcompare2)
@@ -111,7 +120,8 @@ def simulate(randomlause, name, realm, scaling, name_compared, itemcompare1, ite
         call("%s hosted_html=1 iterations=%s target_error=%s threads=%s calculate_scale_factors=%s %s" %
              (complete, iterations, target_error, threads, calculate_scale_factors, complete_compare_string), shell=True)
 
-    except Exception:
+    except Exception as e:
+        logger.info("Exception: ", name, e)
         return render_template('frontcontent.html',
                                error="Error with simulation", realms=realms)
 
