@@ -5,7 +5,7 @@ import random
 import string
 from os.path import expanduser
 from flask import Flask, render_template, request, send_from_directory, abort, jsonify
-from subprocess import call
+from subprocess import call, run
 from os import listdir
 from datetime import datetime
 from re import match
@@ -108,7 +108,7 @@ def simulate(randomlause, name, realm, scaling, name_compared, itemcompare1, ite
              #(complete, iterations, target_error, threads, calculate_scale_factors, complete_compare_string))
 
         # test if this runs on linux:
-            call("%s hosted_html=1 iterations=%s target_error=%s threads=%s calculate_scale_factors=%s %s" %
+            run("%s hosted_html=1 iterations=%s target_error=%s threads=%s calculate_scale_factors=%s %s" %
              (complete, iterations, target_error, threads, calculate_scale_factors, complete_compare_string))
 
     except Exception:
