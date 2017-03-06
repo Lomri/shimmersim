@@ -37,7 +37,7 @@ home = expanduser("~")
 # windows:
 # path = "\"\"%s\\simc\\engine\\simc.exe\"" % home
 # linux:
-path = "\"\"%s\\simc\\engine\\./simc\"" % home
+path = "%s/simc/engine/simc " % home
 # path example: "\"\"C:\\simc\\simc.exe\""
 
 
