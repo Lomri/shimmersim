@@ -108,8 +108,9 @@ def simulate(randomlause, name, realm, scaling, name_compared, itemcompare1, ite
              #(complete, iterations, target_error, threads, calculate_scale_factors, complete_compare_string))
 
         # test if this runs on linux:
-            run("%s hosted_html=1 iterations=%s target_error=%s threads=%s calculate_scale_factors=%s %s" %
-             (complete, iterations, target_error, threads, calculate_scale_factors, complete_compare_string))
+            print("Trying to run %s" % complete)
+            run("%s" % complete, "hosted_html=1 iterations=%s target_error=%s threads=%s calculate_scale_factors=%s %s" %
+             (iterations, target_error, threads, calculate_scale_factors, complete_compare_string))
 
     except Exception:
         return render_template('frontcontent.html',
