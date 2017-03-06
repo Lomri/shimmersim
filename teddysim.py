@@ -37,7 +37,7 @@ home = expanduser("~")
 # windows:
 # path = "\"\"%s\\simc\\engine\\simc.exe\"" % home
 # linux:
-path = "%s/simc/engine/simc " % home
+path = "%s/simc/engine/simc" % home
 # path example: "\"\"C:\\simc\\simc.exe\""
 
 
@@ -108,9 +108,8 @@ def simulate(randomlause, name, realm, scaling, name_compared, itemcompare1, ite
              #(complete, iterations, target_error, threads, calculate_scale_factors, complete_compare_string))
 
         # test if this runs on linux:
-        print("Trying to run %s" % complete)
-        run("%s" % complete, "hosted_html=1 iterations=%s target_error=%s threads=%s calculate_scale_factors=%s %s" %
-             (iterations, target_error, threads, calculate_scale_factors, complete_compare_string))
+        call("%s hosted_html=1 iterations=%s target_error=%s threads=%s calculate_scale_factors=%s %s" %
+             (complete, iterations, target_error, threads, calculate_scale_factors, complete_compare_string), shell=True)
 
     except Exception:
         return render_template('frontcontent.html',
