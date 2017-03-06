@@ -74,8 +74,8 @@ def process_input_of_comparison(item):
 
 # Simulation function:
 def simulate(randomlause, name, realm, scaling, name_compared, itemcompare1, itemcompare2):
-    randomi = " \"html=" + name + "-" + randomlause + ".html\"\""
-    execution = ' \"armory=eu,%s,%s\"' % (realm, name)
+    randomi = " html=" + name + "-" + randomlause + ".html"
+    execution = ' armory=eu,%s,%s' % (realm, name)
     complete = path + execution + randomi
     name_compared = name_compared
 
