@@ -15,7 +15,7 @@ from sys import platform
 
 
 app = Flask(__name__)
-local = True
+local = False
 
 # Logger setup:
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s %(message)s',
@@ -115,13 +115,12 @@ def simulate(randomlause, name, realm, scaling, name_compared, itemcompare1, ite
         if itemcompare1 or itemcompare2:
             complete_compare_string = "copy=%s %s %s" % (name_compared, itemcompare1, itemcompare2)
 
-        # This call method runs only on Windows
+        # Call method for Windows
         if platform.startswith("win"):
             call("cmd /C %s hosted_html=1 iterations=%s target_error=%s threads=%s calculate_scale_factors=%s %s" %
-                (complete, iterations, target_error, threads, calculate_scale_factors, complete_compare_string),
-                 shell=True)
+                (complete, iterations, target_error, threads, calculate_scale_factors, complete_compare_string))
 
-        # test if this runs on linux:
+        # Call method for Linux
         elif platform.startswith("linux"):
             call("%s hosted_html=1 iterations=%s target_error=%s threads=%s calculate_scale_factors=%s %s" %
                 (complete, iterations, target_error, threads, calculate_scale_factors, complete_compare_string),
