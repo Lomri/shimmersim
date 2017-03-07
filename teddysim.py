@@ -3,6 +3,7 @@
 
 import random
 import string
+import logging
 from os.path import expanduser
 from flask import Flask, render_template, request, send_from_directory, abort, jsonify
 from subprocess import call
@@ -10,11 +11,11 @@ from os import listdir
 from datetime import datetime
 from re import match
 from threading import Thread, Lock
-import logging
+from sys import platform
 
 
 app = Flask(__name__)
-local = False
+local = True
 
 # Logger setup:
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s %(message)s',
@@ -35,13 +36,16 @@ lock = Lock()
 # This app doesn't need a secret key right now, but it can be added here in the future:
 app.secret_key = ""
 
-# this should work cross-platform for the home folder (Windows user folder):
+# Home or Windows user folder:
 home = expanduser("~")
-# windows:
-# path = "\"\"%s\\simc\\engine\\simc.exe\"" % home
-# linux:
-path = "%s/simc/engine/simc" % home
-# path example: "\"\"C:\\simc\\simc.exe\""
+
+if platform.startswith("win"):  # Windows
+    path = "\"\"%s\\Desktop\\simc\\simc.exe\"" % home
+    # path example: "\"\"C:\\simc\\simc.exe\"" on windows
+elif platform.startswith("linux"):  # Linux
+    path = "%s/simc/engine/simc" % home
+elif platform.startswith("darwin"):  # OS X
+    raise SystemExit
 
 
 realms = ["Darksorrow", "Genjuros", "Neptulon"]
@@ -77,12 +81,13 @@ def process_input_of_comparison(item):
 
 # Simulation function:
 def simulate(randomlause, name, realm, scaling, name_compared, itemcompare1, itemcompare2):
-    # works on linux:
-    randomi = " html=" + name + "-" + randomlause + ".html"
-    execution = ' armory=eu,%s,%s' % (realm, name)
-    # windows maybe has to use something like:
-    # randomi = " \"html=" + name + "-" + randomlause + ".html\"\""
-    # execution = ' \"armory=eu,%s,%s\"' % (realm, name)
+    if platform.startswith("win"):
+        randomi = " \"html=" + name + "-" + randomlause + ".html\"\""
+        execution = ' \"armory=eu,%s,%s\"' % (realm, name)
+    elif platform.startswith("linux"):
+        randomi = " html=" + name + "-" + randomlause + ".html"
+        execution = ' armory=eu,%s,%s' % (realm, name)
+
     complete = path + execution + randomi
     name_compared = name_compared
 
@@ -111,13 +116,16 @@ def simulate(randomlause, name, realm, scaling, name_compared, itemcompare1, ite
             complete_compare_string = "copy=%s %s %s" % (name_compared, itemcompare1, itemcompare2)
 
         # This call method runs only on Windows
-        # call("cmd /C %s hosted_html=1 iterations=%s target_error=%s threads=%s calculate_scale_factors=%s %s" %
-             #(complete, iterations, target_error, threads, calculate_scale_factors, complete_compare_string))
+        if platform.startswith("win"):
+            call("cmd /C %s hosted_html=1 iterations=%s target_error=%s threads=%s calculate_scale_factors=%s %s" %
+                (complete, iterations, target_error, threads, calculate_scale_factors, complete_compare_string),
+                 shell=True)
 
         # test if this runs on linux:
-        call("%s hosted_html=1 iterations=%s target_error=%s threads=%s calculate_scale_factors=%s %s" %
-             (complete, iterations, target_error, threads, calculate_scale_factors, complete_compare_string),
-             shell=True)
+        elif platform.startswith("linux"):
+            call("%s hosted_html=1 iterations=%s target_error=%s threads=%s calculate_scale_factors=%s %s" %
+                (complete, iterations, target_error, threads, calculate_scale_factors, complete_compare_string),
+                shell=True)
 
     except Exception as e:
         logger.info("Exception: ", name, e)
