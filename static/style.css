@@ -61,6 +61,14 @@ div.footer {
   width: 85%;
 }
 
+div.footer a {
+  color: #5e656b;
+}
+
+div.footer a:visited {
+  color: #747d84;
+}
+
 li {
   text-align: center;
 }
