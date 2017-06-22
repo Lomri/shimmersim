@@ -13,9 +13,8 @@ from re import match
 from threading import Thread, Lock
 from sys import platform
 
-
 app = Flask(__name__)
-local = False
+local = True
 
 # Logger setup:
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s %(message)s',
@@ -46,17 +45,12 @@ elif platform.startswith("linux"):  # Linux
     path = "%s/simc/engine/simc" % home
 elif platform.startswith("darwin"):  # OS X
     raise SystemExit
-
+else:
+    raise SystemExit
 
 realms = ["Darksorrow", "Genjuros", "Neptulon"]
 regex_match = "[A-Za-zÆÐƎƏƐƔĲŊŒẞÞǷȜæðǝəɛɣĳŋœĸſßþƿȝĄƁÇĐƊĘĦĮƘŁØƠŞȘŢȚŦŲƯY̨Ƴąɓçđɗęħįƙłøơşșţțŧųưy̨ƴÁÀÂÄǍĂĀÃÅǺĄÆǼǢƁĆĊĈČÇĎḌĐƊÐÉÈĖÊËĚĔĒĘẸƎƏƐĠĜǦĞĢƔáàâäǎăāãåǻąæǽǣɓćċĉčçďḍđɗðéèėêëěĕēęẹǝəɛġĝǧğģɣĤḤĦIÍÌİÎÏǏĬĪĨĮỊĲĴĶƘĹĻŁĽĿʼNŃN̈ŇÑŅŊÓÒÔÖǑŎŌÕŐỌØǾƠŒĥḥħıíìiîïǐĭīĩįịĳĵķƙĸĺļłľŀŉńn̈ňñņŋóòôöǒŏōõőọøǿơœŔŘŖŚŜŠŞȘṢẞŤŢṬŦÞÚÙÛÜǓŬŪŨŰŮŲỤƯẂẀŴẄǷÝỲŶŸȲỸƳŹŻŽẒŕřŗſśŝšşșṣßťţṭŧþúùûüǔŭūũűůųụưẃẁŵẅƿýỳŷÿȳỹƴźżžẓ]{1,12}"
 regex_comparison_match = "[A-Za-z0-9/_=,']"
-
-# DEFAULT SETTINGS FOR SIM
-# iterations = 10000
-# target_error = 0.100
-# threads = 2
-# calculate_scale_factors = 0
 
 
 def randomword(length):
@@ -91,7 +85,7 @@ def simulate(randomlause, name, realm, scaling, name_compared, itemcompare1, ite
     complete = path + execution + randomi
     name_compared = name_compared
 
-    #Threading:
+    # Threading:
     global finished
     global finished_thread_name
     global amount_in_queue
@@ -118,13 +112,13 @@ def simulate(randomlause, name, realm, scaling, name_compared, itemcompare1, ite
         # Call method for Windows
         if platform.startswith("win"):
             call("cmd /C %s hosted_html=1 iterations=%s target_error=%s threads=%s calculate_scale_factors=%s %s" %
-                (complete, iterations, target_error, threads, calculate_scale_factors, complete_compare_string))
+                 (complete, iterations, target_error, threads, calculate_scale_factors, complete_compare_string))
 
         # Call method for Linux
         elif platform.startswith("linux"):
             call("%s hosted_html=1 iterations=%s target_error=%s threads=%s calculate_scale_factors=%s %s" %
-                (complete, iterations, target_error, threads, calculate_scale_factors, complete_compare_string),
-                shell=True)
+                 (complete, iterations, target_error, threads, calculate_scale_factors, complete_compare_string),
+                 shell=True)
 
     except Exception as e:
         logger.info("Exception: ", name, e)
@@ -181,9 +175,9 @@ def handle():
 
         # Check user input against regex server side
         if itemcompare1 and not \
-            process_input_of_comparison(itemcompare1) or \
-            itemcompare2 and not \
-            process_input_of_comparison(itemcompare2):
+                process_input_of_comparison(itemcompare1) or \
+                        itemcompare2 and not \
+                        process_input_of_comparison(itemcompare2):
 
             logger.warning("%s had error with item compare regex: %s %s" %
                            (request.remote_addr, itemcompare1, itemcompare2))
@@ -192,7 +186,7 @@ def handle():
                                    error="Item compare error.",
                                    realms=realms)
 
-        if not process_input(name, realm):
+        elif not process_input(name, realm):
             logger.warning("%s had error with name input regex: %s" %
                            (request.remote_addr, name))
 
@@ -263,10 +257,11 @@ def internal_server_error(e):
                            error="Error happened! (500 internal error)",
                            realms=realms), 500
 
+
 if __name__ == "__main__":
     if local:
         logger.info("Starting the app locally")
         app.run(threaded=True)
     else:
         logger.info("Starting the app publicly")
-        app.run(host='0.0.0.0', port=80)
+        app.run(host='0.0.0.0', port=80, threaded=True)
