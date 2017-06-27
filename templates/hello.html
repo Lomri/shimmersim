@@ -11,6 +11,7 @@
   <ul>
     <li><a href="/">Simulate</a></li>
     <li><a href="list">List of sims</a></li>
+    <li><a href="login">{% if not loggedin %}Log in{% else %}Log out{% endif %}</a></li>
   </ul>
 </div>
 <div class="content">{% block content %}

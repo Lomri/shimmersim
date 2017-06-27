@@ -48,7 +48,7 @@ elif platform.startswith("darwin"):  # OS X
 else:
     raise SystemExit
 
-realms = ["Frostwhisper", "Outland", "Darksorrow", "Genjuros", "Neptulon"]
+realms = ["Frostwhisper", "Outland", "Darksorrow", "Genjuros", "Neptulon", "Stormreaver"]
 regex_match = "[A-Za-zÆÐƎƏƐƔĲŊŒẞÞǷȜæðǝəɛɣĳŋœĸſßþƿȝĄƁÇĐƊĘĦĮƘŁØƠŞȘŢȚŦŲƯY̨Ƴąɓçđɗęħįƙłøơşșţțŧųưy̨ƴÁÀÂÄǍĂĀÃÅǺĄÆǼǢƁĆĊĈČÇĎḌĐƊÐÉÈĖÊËĚĔĒĘẸƎƏƐĠĜǦĞĢƔáàâäǎăāãåǻąæǽǣɓćċĉčçďḍđɗðéèėêëěĕēęẹǝəɛġĝǧğģɣĤḤĦIÍÌİÎÏǏĬĪĨĮỊĲĴĶƘĹĻŁĽĿʼNŃN̈ŇÑŅŊÓÒÔÖǑŎŌÕŐỌØǾƠŒĥḥħıíìiîïǐĭīĩįịĳĵķƙĸĺļłľŀŉńn̈ňñņŋóòôöǒŏōõőọøǿơœŔŘŖŚŜŠŞȘṢẞŤŢṬŦÞÚÙÛÜǓŬŪŨŰŮŲỤƯẂẀŴẄǷÝỲŶŸȲỸƳŹŻŽẒŕřŗſśŝšşșṣßťţṭŧþúùûüǔŭūũűůųụưẃẁŵẅƿýỳŷÿȳỹƴźżžẓ]{1,12}"
 regex_comparison_match = "[A-Za-z0-9/_=,']"
 
@@ -74,13 +74,13 @@ def process_input_of_comparison(item):
 
 
 # Simulation function:
-def simulate(randomlause, name, realm, scaling, name_compared, itemcompare1, itemcompare2):
+def simulate(randomlause, region, name, realm, scaling, name_compared, itemcompare1, itemcompare2):
     if platform.startswith("win"):
         randomi = " \"html=" + name + "-" + randomlause + ".html\"\""
-        execution = ' \"armory=eu,%s,%s\"' % (realm, name)
+        execution = ' \"armory=%s,%s,%s\"' % (region, realm, name)
     elif platform.startswith("linux"):
         randomi = " html=" + name + "-" + randomlause + ".html"
-        execution = ' armory=eu,%s,%s' % (realm, name)
+        execution = ' armory=%s,%s,%s' % (region, realm, name)
 
     complete = path + execution + randomi
     name_compared = name_compared
@@ -97,14 +97,14 @@ def simulate(randomlause, name, realm, scaling, name_compared, itemcompare1, ite
         calculate_scale_factors = 0
         target_error = 0.1
         iterations = 10000
-        threads = 4
+        threads = 1
         complete_compare_string = ''
 
         if scaling:
             calculate_scale_factors = 1
             target_error = 0.050
             iterations = 10000
-            threads = 4
+            threads = 2
 
         if itemcompare1 or itemcompare2:
             complete_compare_string = "copy=%s %s %s" % (name_compared, itemcompare1, itemcompare2)
@@ -123,7 +123,7 @@ def simulate(randomlause, name, realm, scaling, name_compared, itemcompare1, ite
     except Exception as e:
         logger.info("Exception: ", name, e)
         return render_template('frontcontent.html',
-                               error="Error with simulation", realms=realms)
+                               error="Error with simulation.", realms=realms)
 
     finally:
         lock.release()  # Always release the lock no matter what
@@ -138,7 +138,7 @@ def simulate(randomlause, name, realm, scaling, name_compared, itemcompare1, ite
 def form():
     timenow = datetime.now().strftime('%d.%m.%Y - %H:%M')
     return render_template('frontcontent.html',
-                           timenow=timenow, realms=realms)
+                           timenow=timenow, realms=realms, loggedin=False)
 
 
 @app.route("/list")
@@ -149,12 +149,19 @@ def lista():
                            list=list_of_html, timenow=timenow)
 
 
+# Login WIP
+@app.route("/login", methods=['GET', 'POST'])
+def loginpage():
+    return render_template('logincontent.html')
+
+
 @app.route("/result", methods=['GET', 'POST'])
 def handle():
     if request.method == 'POST':
         name = request.form['charactername']
         realm = request.form['realm']
         scaling = request.form.get('scale')
+        region = request.form['region']
         name_compared = ""
         itemcompare1 = ""
         itemcompare2 = ""
@@ -196,7 +203,7 @@ def handle():
         else:
             # Everything went OK and we let the user to create a thread for simming
             randomlause = randomword(15)
-            th = Thread(target=simulate, args=(randomlause, name,
+            th = Thread(target=simulate, args=(randomlause, region, name,
                                                realm, scaling,
                                                name_compared,
                                                itemcompare1, itemcompare2))
@@ -245,16 +252,16 @@ def queue_status():
 @app.errorhandler(404)
 def page_not_found(e):
     return render_template('frontcontent.html',
-                           title="Teddy simmer - 404 Error",
-                           error="Error happened! (404 not found)",
+                           title="Shimmer simmer - 404",
+                           error="Oh noes! Page not found! (404)",
                            realms=realms), 404
 
 
 @app.errorhandler(500)
 def internal_server_error(e):
     return render_template('frontcontent.html',
-                           title="Teddy simmer - 500 Error",
-                           error="Error happened! (500 internal error)",
+                           title="Shimmer simmer - 500 Error",
+                           error="Server error! Try again. (500)",
                            realms=realms), 500
 
 

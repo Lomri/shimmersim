@@ -1,0 +1,21 @@
+{% extends "hello.html" %}
+
+{% block content %}
+{% if not loggedin %}
+Log in:
+<form action="#" method="POST">
+<br>
+<br>
+<input class="inputtextfield" required type="text" name="loginname" placeholder="Username" maxlength="20" autofocus>
+<br>
+<br>
+<input class="inputtextfield" required type="password" name="loginpass" placeholder="Password" maxlength="20">
+<br>
+<br>
+<input type="submit" class="button" value="Log in">
+</form>
+{% else %}
+Log out simulator
+{% endif %}
+
+{% endblock %}

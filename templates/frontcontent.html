@@ -19,14 +19,14 @@
 {% if error %}
 <font color="red">{{ error }}</font> <br><br>
 {%endif %}
-Region:
-<br>
-EU: <input type="radio" name="realmeu" checked>
-<br>
-US: <input type="radio" name="realmus" disabled>
-<br>
-<br>
 <form action="/result" method="POST">
+  Region:
+  <br>
+  EU: <input type="radio" name="region" id="eu" value="eu" checked>
+  <br>
+  US: <input type="radio" name="region" id="us" value="us">
+  <br>
+  <br>
   Realm:
   <br>
   <select name="realm">
